@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Gateway Demo</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Stripe.js -->
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-credit-card"></i> Payment Gateway Demo</h1>
+            <p>Secure payment processing with multiple gateways</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Payment Form -->
+            <div class="payment-form">
+                <div class="form-section">
+                    <h2><i class="fas fa-shopping-cart"></i> Order Summary</h2>
+                    <div class="order-details">
+                        <div class="order-item">
+                            <span>Product Name</span>
+                            <span id="product-name">Premium Service Package</span>
+                        </div>
+                        <div class="order-item">
+                            <span>Quantity</span>
+                            <span>1</span>
+                        </div>
+                        <div class="order-item">
+                            <span>Unit Price</span>
+                            <span id="unit-price">$99.99</span>
+                        </div>
+                        <div class="order-item total">
+                            <span>Total Amount</span>
+                            <span id="total-amount">$99.99</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2><i class="fas fa-user"></i> Customer Information</h2>
+                    <div class="form-group">
+                        <label for="customer-name">Full Name *</label>
+                        <input type="text" id="customer-name" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customer-email">Email Address *</label>
+                        <input type="email" id="customer-email" placeholder="john@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customer-phone">Phone Number</label>
+                        <input type="tel" id="customer-phone" placeholder="+1 (555) 123-4567">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2><i class="fas fa-wallet"></i> Select Payment Method</h2>
+                    <div class="payment-methods">
+                        <div class="method-option active" data-method="stripe">
+                            <div class="method-icon">
+                                <i class="fab fa-cc-stripe"></i>
+                            </div>
+                            <div class="method-info">
+                                <h3>Credit/Debit Card</h3>
+                                <p>Visa, Mastercard, American Express</p>
+                            </div>
+                            <div class="method-check">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+
+                        <div class="method-option" data-method="paypal">
+                            <div class="method-icon">
+                                <i class="fab fa-paypal"></i>
+                            </div>
+                            <div class="method-info">
+                                <h3>PayPal</h3>
+                                <p>Pay with your PayPal account</p>
+                            </div>
+                            <div class="method-check">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+
+                        <div class="method-option" data-method="instapay">
+                            <div class="method-icon">
+                                <i class="fas fa-university"></i>
+                            </div>
+                            <div class="method-info">
+                                <h3>InstaPay</h3>
+                                <p>Philippines bank transfer</p>
+                            </div>
+                            <div class="method-check">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+
+                        <div class="method-option" data-method="cash">
+                            <div class="method-icon">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                            <div class="method-info">
+                                <h3>Cash Payment</h3>
+                                <p>Bank deposit or over-the-counter</p>
+                            </div>
+                            <div class="method-check">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stripe Card Form (Hidden by default) -->
+                <div class="form-section stripe-section" id="stripe-section">
+                    <h2><i class="fas fa-credit-card"></i> Card Details</h2>
+                    <div class="stripe-form">
+                        <div class="form-group">
+                            <label for="card-number">Card Number</label>
+                            <div id="card-number" class="stripe-element"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="card-expiry">Expiry Date</label>
+                                <div id="card-expiry" class="stripe-element"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="card-cvc">CVC</label>
+                                <div id="card-cvc" class="stripe-element"></div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="card-name">Name on Card</label>
+                            <input type="text" id="card-name" placeholder="John Doe">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- InstaPay Form (Hidden by default) -->
+                <div class="form-section instapay-section" id="instapay-section" style="display: none;">
+                    <h2><i class="fas fa-university"></i> Bank Selection</h2>
+                    <div class="form-group">
+                        <label for="instapay-bank">Select Your Bank</label>
+                        <select id="instapay-bank" class="bank-select">
+                            <option value="">Select a bank</option>
+                            <!-- Banks will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="bank-info">
+                        <p><i class="fas fa-info-circle"></i> You will be redirected to your bank's payment page</p>
+                    </div>
+                </div>
+
+                <!-- Cash Payment Instructions (Hidden by default) -->
+                <div class="form-section cash-section" id="cash-section" style="display: none;">
+                    <h2><i class="fas fa-money-bill-wave"></i> Payment Instructions</h2>
+                    <div class="instructions">
+                        <div class="instruction-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>Generate Payment Slip</h4>
+                                <p>Click "Pay Now" to generate your payment reference</p>
+                            </div>
+                        </div>
+                        <div class="instruction-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>Make Payment</h4>
+                                <p>Pay at any authorized payment center or bank</p>
+                            </div>
+                        </div>
+                        <div class="instruction-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h4>Confirmation</h4>
+                                <p>We'll confirm your payment within 24 hours</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-group terms">
+                        <input type="checkbox" id="terms" required>
+                        <label for="terms">
+                            I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                        </label>
+                    </div>
+                    
+                    <button id="pay-button" class="pay-button">
+                        <i class="fas fa-lock"></i> Pay Now - $99.99
+                    </button>
+                    
+                    <div class="secure-notice">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Your payment is secure and encrypted</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Status Modal -->
+            <div class="modal" id="payment-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 id="modal-title">Processing Payment</h2>
+                        <button class="close-modal">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="payment-status">
+                            <div class="status-icon" id="status-icon">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
+                            <h3 id="status-message">Processing your payment...</h3>
+                            <p id="status-details">Please wait while we process your transaction.</p>
+                            
+                            <div class="payment-details" id="payment-details">
+                                <!-- Payment details will be shown here -->
+                            </div>
+                            
+                            <div class="actions" id="payment-actions">
+                                <!-- Action buttons will be shown here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>© 2024 Payment Gateway Demo. All rights reserved.</p>
+            <div class="security-badges">
+                <span><i class="fas fa-lock"></i> SSL Secure</span>
+                <span><i class="fas fa-shield-alt"></i> PCI Compliant</span>
+                <span><i class="fas fa-user-shield"></i> GDPR Ready</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script src="script.js"></script>
+</body>
+</html>
