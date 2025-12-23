@@ -3,7 +3,7 @@ require_once 'constants.php';
 
 class Database {
     private $conn;
-    private  $instance = null;
+    private static $instance = null;
 
     private function __construct() {
         try {
@@ -23,7 +23,7 @@ class Database {
         }
     }
 
-    public  function getInstance() {
+    public static function getInstance() {
         if (self::$instance == null) {
             self::$instance = new Database();
         }
@@ -48,7 +48,7 @@ class Database {
 
 // Helper function for database operations
 class DBHelper {
-    public  function insert($table, $data) {
+    public static function insert($table, $data) {
         $conn = Database::getInstance();
         
         $columns = implode(', ', array_keys($data));

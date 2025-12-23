@@ -2,6 +2,7 @@
 require_once __DIR__ . '/PaymentGateway.php';
 require_once __DIR__ . '/../vendor/autoload.php'; // Composer autoloader
 
+
 class StripePayment extends PaymentGateway {
     private $stripe;
     
@@ -31,7 +32,8 @@ class StripePayment extends PaymentGateway {
             ]);
             
             // Save to database
-            $transactionId = DBHelper::insert('transactions', [
+            $transactionId = new DBHelper();
+            $transactionId = $transactionId->insert('transactions', [
                 'transaction_uuid' => uniqid('stripe_'),
                 'user_id' => $params['user_id'] ?? null,
                 'amount' => $amount,

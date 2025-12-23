@@ -67,6 +67,10 @@ class PaymentLogger {
         ];
         
         $logFile = LOG_PATH . date('Y-m-d') . '.log';
+
+        if (!is_dir(dirname($logFile))) {
+            mkdir(dirname($logFile), 0755, true);
+        }
         file_put_contents($logFile, json_encode($logEntry) . PHP_EOL, FILE_APPEND);
     }
     

@@ -1,6 +1,6 @@
 <?php
 require_once '../config/constants.php';
-// require_once '../includes/StripePayment.php';  // Disabled until composer dependencies are installed
+require_once '../includes/StripePayment.php'; 
 require_once '../includes/PayPalPayment.php';
 require_once '../includes/InstaPayPayment.php';
 require_once '../includes/CashPayment.php';
