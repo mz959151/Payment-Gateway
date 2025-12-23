@@ -1,0 +1,7 @@
+{
+    "gateway": "instapay",
+    "amount": 100.00,
+    "currency": "PHP",
+    "customer_email": "test@example.com",
+    "customer_name": "Test User"
+}

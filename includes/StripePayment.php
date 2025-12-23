@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/PaymentGateway.php';
-require_once __DIR__ . '/../libs/Stripe/init.php'; // Stripe PHP library
+require_once __DIR__ . '/../vendor/autoload.php'; // Composer autoloader
 
 class StripePayment extends PaymentGateway {
     private $stripe;

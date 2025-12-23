@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
 
+
+ini_set('display_errors', 'On');
+
 abstract class PaymentGateway {
     protected $config;
     protected $logger;
@@ -8,6 +11,7 @@ abstract class PaymentGateway {
     public function __construct($config = []) {
         $this->config = $config;
         $this->logger = new PaymentLogger();
+
     }
     
     abstract public function createPayment($params);

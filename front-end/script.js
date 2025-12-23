@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost/payment-gateway/backend/api';
+const API_BASE_URL = 'http://localhost/payment-gateway/api';
 const STRIPE_PUBLIC_KEY = 'pk_test_your_public_key_here'; // Replace with your Stripe public key
 
 // Global variables
@@ -10,19 +10,19 @@ let currentPaymentIntent = null;
 let transactionData = null;
 
 // Initialize the application
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Initialize Stripe
     if (typeof Stripe !== 'undefined') {
         stripe = Stripe(STRIPE_PUBLIC_KEY);
         initializeStripeElements();
     }
-    
+
     // Set up event listeners
     setupEventListeners();
-    
+
     // Load InstaPay banks
     loadInstaPayBanks();
-    
+
     // Set default values
     setDefaultValues();
 });
@@ -31,24 +31,24 @@ document.addEventListener('DOMContentLoaded', function() {
 function setupEventListeners() {
     // Payment method selection
     document.querySelectorAll('.method-option').forEach(option => {
-        option.addEventListener('click', function() {
+        option.addEventListener('click', function () {
             selectPaymentMethod(this.dataset.method);
         });
     });
-    
+
     // Pay button
     document.getElementById('pay-button').addEventListener('click', processPayment);
-    
+
     // Close modal button
     document.querySelector('.close-modal').addEventListener('click', closeModal);
-    
+
     // Close modal when clicking outside
-    document.getElementById('payment-modal').addEventListener('click', function(e) {
+    document.getElementById('payment-modal').addEventListener('click', function (e) {
         if (e.target === this) {
             closeModal();
         }
     });
-    
+
     // Form validation
     document.getElementById('customer-name').addEventListener('input', validateForm);
     document.getElementById('customer-email').addEventListener('input', validateForm);
@@ -58,7 +58,7 @@ function setupEventListeners() {
 // Initialize Stripe Elements
 function initializeStripeElements() {
     const elements = stripe.elements();
-    
+
     // Style for Stripe elements
     const style = {
         base: {
@@ -73,19 +73,19 @@ function initializeStripeElements() {
             color: '#e74c3c'
         }
     };
-    
+
     // Create card elements
     cardElement = elements.create('cardNumber', { style: style });
     cardElement.mount('#card-number');
-    
+
     const cardExpiry = elements.create('cardExpiry', { style: style });
     cardExpiry.mount('#card-expiry');
-    
+
     const cardCvc = elements.create('cardCvc', { style: style });
     cardCvc.mount('#card-cvc');
-    
+
     // Handle real-time validation errors
-    cardElement.on('change', function(event) {
+    cardElement.on('change', function (event) {
         const displayError = document.getElementById('card-errors');
         if (event.error) {
             displayError.textContent = event.error.message;
@@ -101,20 +101,20 @@ function selectPaymentMethod(method) {
     document.querySelectorAll('.method-option').forEach(option => {
         option.classList.remove('active');
     });
-    
+
     document.querySelector(`.method-option[data-method="${method}"]`).classList.add('active');
     selectedPaymentMethod = method;
-    
+
     // Show/hide relevant sections
     document.getElementById('stripe-section').style.display = method === 'stripe' ? 'block' : 'none';
     document.getElementById('instapay-section').style.display = method === 'instapay' ? 'block' : 'none';
     document.getElementById('cash-section').style.display = method === 'cash' ? 'block' : 'none';
-    
+
     // Update pay button text
     const amount = document.getElementById('total-amount').textContent;
-    document.getElementById('pay-button').innerHTML = 
+    document.getElementById('pay-button').innerHTML =
         `<i class="fas fa-lock"></i> Pay Now - ${amount}`;
-    
+
     validateForm();
 }
 
@@ -124,10 +124,10 @@ function validateForm() {
     const email = document.getElementById('customer-email').value.trim();
     const terms = document.getElementById('terms').checked;
     const payButton = document.getElementById('pay-button');
-    
+
     // Basic validation
     let isValid = name && email && terms;
-    
+
     // Additional validation based on payment method
     if (selectedPaymentMethod === 'stripe') {
         // Stripe validation would happen on the server
@@ -136,7 +136,7 @@ function validateForm() {
         const bank = document.getElementById('instapay-bank').value;
         isValid = isValid && bank;
     }
-    
+
     payButton.disabled = !isValid;
     return isValid;
 }
@@ -156,7 +156,7 @@ async function loadInstaPayBanks() {
             { id: 'rcbc', name: 'RCBC' },
             { id: 'pnb', name: 'Philippine National Bank (PNB)' }
         ];
-        
+
         const select = document.getElementById('instapay-bank');
         banks.forEach(bank => {
             const option = document.createElement('option');
@@ -164,9 +164,9 @@ async function loadInstaPayBanks() {
             option.textContent = bank.name;
             select.appendChild(option);
         });
-        
+
         select.addEventListener('change', validateForm);
-        
+
     } catch (error) {
         console.error('Error loading banks:', error);
     }
@@ -180,14 +180,14 @@ function setDefaultValues() {
         { name: 'Jane Smith', email: 'jane@example.com', phone: '+1 (555) 987-6543' },
         { name: 'Bob Johnson', email: 'bob@example.com', phone: '+1 (555) 456-7890' }
     ];
-    
+
     const user = users[Math.floor(Math.random() * users.length)];
-    
+
     document.getElementById('customer-name').value = user.name;
     document.getElementById('customer-email').value = user.email;
     document.getElementById('customer-phone').value = user.phone;
     document.getElementById('card-name').value = user.name;
-    
+
     validateForm();
 }
 
@@ -197,7 +197,7 @@ async function processPayment() {
         showError('Please fill in all required fields');
         return;
     }
-    
+
     // Collect payment data
     const paymentData = {
         gateway: selectedPaymentMethod,
@@ -217,12 +217,12 @@ async function processPayment() {
             timestamp: new Date().toISOString()
         }
     };
-    
+
     // Add method-specific data
     if (selectedPaymentMethod === 'instapay') {
         paymentData.bank = document.getElementById('instapay-bank').value;
     }
-    
+
     if (selectedPaymentMethod === 'cash') {
         paymentData.bank_accounts = [
             {
@@ -234,13 +234,13 @@ async function processPayment() {
         ];
         paymentData.pickup_location = '123 Main Street, Makati City';
     }
-    
+
     // Show processing modal
     showPaymentModal('Processing your payment...', 'Please wait while we initialize the payment.');
-    
+
     try {
         let result;
-        
+
         switch (selectedPaymentMethod) {
             case 'stripe':
                 result = await processStripePayment(paymentData);
@@ -257,14 +257,14 @@ async function processPayment() {
             default:
                 throw new Error('Unsupported payment method');
         }
-        
+
         if (result.success) {
             transactionData = result.data;
             await handlePaymentResult(result);
         } else {
             throw new Error(result.error || 'Payment failed');
         }
-        
+
     } catch (error) {
         showPaymentError(error.message);
         console.error('Payment error:', error);
@@ -281,16 +281,16 @@ async function processStripePayment(paymentData) {
         },
         body: JSON.stringify(paymentData)
     });
-    
+
     const createResult = await createResponse.json();
-    
+
     if (!createResult.success) {
         throw new Error(createResult.error || 'Failed to create payment');
     }
-    
+
     // Save payment intent data
     currentPaymentIntent = createResult.data;
-    
+
     // Confirm the payment with Stripe
     const cardResult = await stripe.confirmCardPayment(currentPaymentIntent.client_secret, {
         payment_method: {
@@ -302,11 +302,11 @@ async function processStripePayment(paymentData) {
             }
         }
     });
-    
+
     if (cardResult.error) {
         throw new Error(cardResult.error.message);
     }
-    
+
     // Payment succeeded
     return {
         success: true,
@@ -328,28 +328,28 @@ async function processPayPalPayment(paymentData) {
         },
         body: JSON.stringify(paymentData)
     });
-    
+
     const createResult = await createResponse.json();
-    
+
     if (!createResult.success) {
         throw new Error(createResult.error || 'Failed to create PayPal order');
     }
-    
+
     // Redirect to PayPal approval URL
     if (createResult.data.approve_url) {
         window.open(createResult.data.approve_url, '_blank');
-        
+
         // Show instructions to user
         showPaymentModal(
             'Redirecting to PayPal...',
             'A new window has opened for PayPal authorization. Please complete the payment there.',
             true
         );
-        
+
         // Start polling for payment completion
         return await pollPaymentStatus(createResult.data.order_id, 'paypal');
     }
-    
+
     throw new Error('No PayPal approval URL received');
 }
 
@@ -363,33 +363,33 @@ async function processInstaPayPayment(paymentData) {
         },
         body: JSON.stringify(paymentData)
     });
-    
+
     const createResult = await createResponse.json();
-    
+
     if (!createResult.success) {
         throw new Error(createResult.error || 'Failed to create InstaPay payment');
     }
-    
+
     // If there's a payment URL, redirect to it
     if (createResult.data.payment_url) {
         window.open(createResult.data.payment_url, '_blank');
-        
+
         showPaymentModal(
             'Redirecting to Bank...',
             'A new window has opened for bank payment. Please complete the transaction there.',
             true
         );
-        
+
         // Start polling for payment completion
         return await pollPaymentStatus(createResult.data.payment_id, 'instapay');
     }
-    
+
     // Show QR code if available
     if (createResult.data.qr_code) {
         showQRCodePayment(createResult.data);
         return createResult;
     }
-    
+
     throw new Error('No payment method available');
 }
 
@@ -403,27 +403,27 @@ async function processCashPayment(paymentData) {
         },
         body: JSON.stringify(paymentData)
     });
-    
+
     const createResult = await createResponse.json();
-    
+
     if (!createResult.success) {
         throw new Error(createResult.error || 'Failed to create cash payment');
     }
-    
+
     // Show payment slip
     showPaymentSlip(createResult.data);
-    
+
     return createResult;
 }
 
 // Poll payment status
 async function pollPaymentStatus(paymentId, gateway, interval = 3000, maxAttempts = 60) {
     let attempts = 0;
-    
+
     return new Promise((resolve, reject) => {
         const poll = async () => {
             attempts++;
-            
+
             try {
                 const verifyResponse = await fetch(`${API_BASE_URL}/verify-payment.php`, {
                     method: 'POST',
@@ -435,9 +435,9 @@ async function pollPaymentStatus(paymentId, gateway, interval = 3000, maxAttempt
                         payment_id: paymentId
                     })
                 });
-                
+
                 const verifyResult = await verifyResponse.json();
-                
+
                 if (verifyResult.success) {
                     if (verifyResult.data.status === 'completed') {
                         resolve({
@@ -450,11 +450,11 @@ async function pollPaymentStatus(paymentId, gateway, interval = 3000, maxAttempt
                         return;
                     }
                 }
-                
+
                 // Continue polling if not completed yet
                 if (attempts < maxAttempts) {
                     setTimeout(poll, interval);
-                    
+
                     // Update modal message
                     updatePaymentModalMessage(
                         'Waiting for payment confirmation...',
@@ -463,7 +463,7 @@ async function pollPaymentStatus(paymentId, gateway, interval = 3000, maxAttempt
                 } else {
                     reject(new Error('Payment timeout'));
                 }
-                
+
             } catch (error) {
                 if (attempts < maxAttempts) {
                     setTimeout(poll, interval);
@@ -472,7 +472,7 @@ async function pollPaymentStatus(paymentId, gateway, interval = 3000, maxAttempt
                 }
             }
         };
-        
+
         poll();
     });
 }
@@ -500,21 +500,21 @@ function showPaymentModal(title, message, showCloseButton = false) {
     const statusIcon = document.getElementById('status-icon');
     const paymentDetails = document.getElementById('payment-details');
     const paymentActions = document.getElementById('payment-actions');
-    
+
     modalTitle.textContent = title;
     statusMessage.textContent = title;
     statusDetails.textContent = message;
-    
+
     // Reset icon and content
     statusIcon.className = 'status-icon';
     statusIcon.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    
+
     paymentDetails.innerHTML = '';
     paymentActions.innerHTML = '';
-    
+
     // Show/hide close button
     document.querySelector('.close-modal').style.display = showCloseButton ? 'block' : 'none';
-    
+
     modal.classList.add('active');
 }
 
@@ -522,7 +522,7 @@ function showPaymentModal(title, message, showCloseButton = false) {
 function updatePaymentModalMessage(title, message) {
     const statusMessage = document.getElementById('status-message');
     const statusDetails = document.getElementById('status-details');
-    
+
     statusMessage.textContent = title;
     statusDetails.textContent = message;
 }
@@ -539,12 +539,12 @@ function showPaymentSuccess(paymentData) {
     const statusDetails = document.getElementById('status-details');
     const paymentDetails = document.getElementById('payment-details');
     const paymentActions = document.getElementById('payment-actions');
-    
+
     statusIcon.className = 'status-icon success';
     statusIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
     statusMessage.textContent = 'Payment Successful!';
     statusDetails.textContent = 'Your payment has been processed successfully.';
-    
+
     // Show payment details
     paymentDetails.innerHTML = `
         <p>
@@ -564,7 +564,7 @@ function showPaymentSuccess(paymentData) {
             <span class="value">Completed</span>
         </p>
     `;
-    
+
     // Show action buttons
     paymentActions.innerHTML = `
         <button class="btn-primary" onclick="printReceipt()">
@@ -574,7 +574,7 @@ function showPaymentSuccess(paymentData) {
             <i class="fas fa-home"></i> Return Home
         </button>
     `;
-    
+
     // Send confirmation email (simulate)
     simulateEmailConfirmation(paymentData);
 }
@@ -586,14 +586,14 @@ function showPaymentPending(paymentData) {
     const statusDetails = document.getElementById('status-details');
     const paymentDetails = document.getElementById('payment-details');
     const paymentActions = document.getElementById('payment-actions');
-    
+
     statusIcon.className = 'status-icon pending';
     statusIcon.innerHTML = '<i class="fas fa-clock"></i>';
     statusMessage.textContent = 'Payment Pending';
-    
+
     if (selectedPaymentMethod === 'cash') {
         statusDetails.textContent = 'Please follow the instructions below to complete your payment.';
-        
+
         paymentDetails.innerHTML = `
             <div class="cash-instructions">
                 <h4><i class="fas fa-file-invoice-dollar"></i> Payment Reference: ${paymentData.reference}</h4>
@@ -604,7 +604,7 @@ function showPaymentPending(paymentData) {
                 </div>
             </div>
         `;
-        
+
         paymentActions.innerHTML = `
             <button class="btn-primary" onclick="printPaymentSlip()">
                 <i class="fas fa-print"></i> Print Payment Slip
@@ -613,10 +613,10 @@ function showPaymentPending(paymentData) {
                 <i class="fas fa-home"></i> Close
             </button>
         `;
-        
+
     } else if (selectedPaymentMethod === 'instapay') {
         statusDetails.textContent = 'Your bank transfer is being processed.';
-        
+
         if (paymentData.qr_code) {
             paymentDetails.innerHTML = `
                 <div class="qr-code-instructions">
@@ -626,11 +626,11 @@ function showPaymentPending(paymentData) {
                     <p><strong>Reference:</strong> ${paymentData.payment_id}</p>
                 </div>
             `;
-            
+
             // Generate QR code (using a library in production)
             generateQRCode(paymentData.qr_code);
         }
-        
+
         paymentActions.innerHTML = `
             <button class="btn-primary" onclick="checkPaymentStatus('${paymentData.payment_id}')">
                 <i class="fas fa-sync-alt"></i> Check Status
@@ -648,12 +648,12 @@ function showPaymentError(errorMessage) {
     const statusMessage = document.getElementById('status-message');
     const statusDetails = document.getElementById('status-details');
     const paymentActions = document.getElementById('payment-actions');
-    
+
     statusIcon.className = 'status-icon error';
     statusIcon.innerHTML = '<i class="fas fa-exclamation-circle"></i>';
     statusMessage.textContent = 'Payment Failed';
     statusDetails.textContent = errorMessage;
-    
+
     paymentActions.innerHTML = `
         <button class="btn-primary" onclick="retryPayment()">
             <i class="fas fa-redo"></i> Try Again
@@ -671,7 +671,7 @@ function showQRCodePayment(paymentData) {
         'Please scan the QR code with your bank\'s mobile app.',
         true
     );
-    
+
     const paymentDetails = document.getElementById('payment-details');
     paymentDetails.innerHTML = `
         <div class="qr-payment">
@@ -696,7 +696,7 @@ function showPaymentSlip(paymentData) {
         'Please follow the instructions below to complete your payment.',
         true
     );
-    
+
     const paymentDetails = document.getElementById('payment-details');
     paymentDetails.innerHTML = `
         <div class="payment-slip">
@@ -762,7 +762,7 @@ function generateQRCode(data) {
 async function checkPaymentStatus(paymentId) {
     try {
         showPaymentModal('Checking Status...', 'Please wait while we check your payment status.');
-        
+
         const response = await fetch(`${API_BASE_URL}/verify-payment.php`, {
             method: 'POST',
             headers: {
@@ -773,9 +773,9 @@ async function checkPaymentStatus(paymentId) {
                 payment_id: paymentId
             })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
             if (result.data.status === 'completed') {
                 showPaymentSuccess(result.data);
@@ -787,7 +787,7 @@ async function checkPaymentStatus(paymentId) {
         } else {
             showPaymentError(result.error);
         }
-        
+
     } catch (error) {
         showPaymentError('Failed to check payment status');
     }
@@ -812,7 +812,7 @@ function printReceipt() {
             <p style="text-align: center; font-size: 12px; color: #666;">${SITE_NAME}</p>
         </div>
     `;
-    
+
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
         <html>

@@ -1,13 +1,16 @@
 <?php
 require_once '../config/constants.php';
-require_once '../includes/StripePayment.php';
+// require_once '../includes/StripePayment.php';  // Disabled until composer dependencies are installed
 require_once '../includes/PayPalPayment.php';
 require_once '../includes/InstaPayPayment.php';
 require_once '../includes/CashPayment.php';
 
+
 header('Content-Type: application/json');
 
 try {
+
+    
     // Get input data
     $input = json_decode(file_get_contents('php://input'), true);
     
@@ -34,6 +37,9 @@ try {
     
     switch (strtolower($input['gateway'])) {
         case 'stripe':
+            if (!class_exists('StripePayment')) {
+                throw new Exception('Stripe payment gateway is not available. Please run: composer install');
+            }
             $gateway = new StripePayment([
                 'secret_key' => STRIPE_SECRET_KEY,
                 'public_key' => STRIPE_PUBLIC_KEY

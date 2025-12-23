@@ -22,8 +22,8 @@ class InstaPayPayment extends PaymentGateway {
             : 'https://sandbox-api.instapay.ph/v2';
     }
     
-    private function generateSignature($data, $timestamp) {
-        $stringToSign = $timestamp . json_encode($data);
+    protected function generateSignature($data) {
+        $stringToSign = json_encode($data);
         return hash_hmac('sha256', $stringToSign, $this->secretKey);
     }
     

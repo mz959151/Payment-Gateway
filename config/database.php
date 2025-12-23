@@ -49,7 +49,7 @@ class Database {
 // Helper function for database operations
 class DBHelper {
     public  function insert($table, $data) {
-        $conn = new Database::getInstance();
+        $conn = Database::getInstance();
         
         $columns = implode(', ', array_keys($data));
         $placeholders = ':' . implode(', :', array_keys($data));
